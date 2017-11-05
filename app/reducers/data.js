@@ -4,7 +4,7 @@ import { TEACHERS_LOAD_ALL } from '../actions/data';
 
 export type Teacher = {
   +name: string,
-  +workingTime: number
+  +workload: number
 };
 
 export interface IState {

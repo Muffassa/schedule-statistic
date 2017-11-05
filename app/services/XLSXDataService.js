@@ -1,105 +1,91 @@
 // @flow
-
-import type { Teacher } from '../reducers/data';
-/**
- * {
- *  Взвод: [
- *    {предмет: РемЭСО, тема: 12.1, тип: лекция, кабинет: 700, преподаватели: [Шмаков, Варлаков, Быта]}
- *  ]
- * }
- * @param {*} worksheet
- */
+import { SSF } from 'xlsx';
 
 export function getDataFromWorkSheet(worksheet: any) {
   const workSheetData = {};
-  for (let i = 2; i <= 55; i += 2) {
-    // добавить возможность загружать данные из нескольких ячеек
+  let dateCode;
+  for (let i = 2; i <= 101; i += 2) {
     const scheme = {
       troopNumber: [`B${i}`],
-      subjectName: [`C${i}`],
-      subjectType: [`C${i}`],
-      themeNumber: [`C${i + 1}`],
-      place: [`D${i}`],
-      teachers: [`D${i + 1}`],
+      subjectName: [`C${i}`, `E${i}`, `G${i}`],
+      themeNumber: [`C${i + 1}`, `E${i + 1}`, `G${i + 1}`],
+      place: [`D${i}`, `F${i}`, `H${i}`],
+      teachers: [`D${i + 1}`, `F${i + 1}`, `H${i + 1}`],
     };
 
-    const { troopNumber, ...data } = getDataFrom(worksheet).by(scheme);
-    const lesson = {
-      ...data,
-      subjectName: data.subjectName.split('/')[0],
-      subjectType: data.subjectType.split('/')[1],
-      teachers: data.teachers.split('/'),
+    const getScheduleByScheme = makeXLSXParser(worksheet);
+
+    const { troopNumber, subjectName, themeNumber, place, teachers } = getScheduleByScheme(scheme);
+
+    const lessons = subjectName.map((subject, index) => ({
+      subject: subject
+        .toString()
+        .toString()
+        .split('/')[0],
+      type: subject.toString().split('/')[1],
+      thems: themeNumber[index].toString().split('/'),
+      places: place[index].toString().split('/'),
+      teachers: teachers[index].toString().split('/'),
+    }));
+
+    dateCode = worksheet[`A${i}`] ? worksheet[`A${i}`].v : dateCode;
+    const { d, m } = SSF.parse_date_code(dateCode, { date1904: false });
+    const day: string = `${d}.${m}`;
+    const troopDaySchedule = {
+      troop: troopNumber[0],
+      lessons,
     };
 
-    workSheetData[troopNumber]
-      ? workSheetData[troopNumber].push(lesson)
-      : (workSheetData[troopNumber] = [{ ...lesson }]);
+    workSheetData[day]
+      ? workSheetData[day].push(troopDaySchedule)
+      : (workSheetData[day] = [{ ...troopDaySchedule }]);
   }
   return workSheetData;
 }
 
-function getDataFrom(worksheet: any) {
-  const by = scheme => Object.keys(scheme).reduce((result, key) => {
-    const cellNumber = scheme[key];
-    const worksheetData = worksheet[cellNumber].v;
+const makeXLSXParser = worksheet => scheme =>
+  Object.keys(scheme).reduce((result, key) => {
+    const cellNumbers = scheme[key];
+    const worksheetData = cellNumbers.map(
+      cellNumber => (worksheet[cellNumber] ? worksheet[cellNumber].v : ''),
+    );
     return { ...result, [key]: worksheetData };
   }, {});
 
-  return {
-    by,
-  };
-}
+export function getTeachersWorkload(data: any) {
+  const teachersWorkload = Object.keys(data)
+    .map(key => data[key])
+    .reduce((prev, dateLessons) => prev.concat(dateLessons), [])
+    .reduce((prev, lessonDays) => prev.concat(lessonDays.lessons), [])
+    .map(lesson => lesson.teachers.map(teacher => ({ name: teacher, type: lesson.type })))
+    .reduce((prev, dayTeachers) => prev.concat(dayTeachers), [])
+    .reduce((prev, teacher) => {
+      const { name, type } = teacher;
+      if (prev[name]) {
+        const { workload } = prev[name];
+        const teacherWorkload = { ...prev[name], workload: workload + 2 };
 
-export default function getTeachersData(worksheet: any): Teacher[] {
-  const teachers = {};
-  for (let i = 3; i <= 55; i += 2) {
-    const teachersNamesD = worksheet[`D${i}`].v.split('/');
-    const lessonTypeC = worksheet[`C${i - 1}`].v.split('/')[1];
+        if (prev[name][type]) {
+          const prevWorkloadByLessonType = prev[name][type];
+          return { ...prev, [name]: { ...teacherWorkload, [type]: prevWorkloadByLessonType + 2 } };
+        }
 
-    teachersNamesD.map(teacherName => {
-      if (teachers[teacherName]) {
-        teachers[teacherName].workingTime += 2;
-        teachers[teacherName].lessonTypes[lessonTypeC] += 2;
-      } else {
-        teachers[teacherName] = {
-          workingTime: 2,
-          lessonTypes: {
-            [lessonTypeC]: 2,
-          },
-        };
+        return { ...prev, [name]: { ...teacherWorkload, [type]: 2 } };
       }
 
-      return true;
+      return {
+        ...prev,
+        [name]: {
+          workload: 2,
+          [type]: 2,
+        },
+      };
+    }, {});
+
+  return Object.keys(teachersWorkload).map(teacherName => {
+    const teacherData = teachersWorkload[teacherName];
+    return Object.keys(teacherData).reduce((prev, key) => ({ ...prev, [key]: teacherData[key] }), {
+      name: teacherName,
     });
-
-    const teachersNamesF = worksheet[`F${i}`].v.split('/');
-
-    teachersNamesF.map(teacherName => {
-      if (teachers[teacherName] && teachers[teacherName].workingTime) {
-        teachers[teacherName].workingTime += 2;
-      } else {
-        teachers[teacherName] = {};
-        teachers[teacherName].workingTime = 2;
-      }
-
-      return true;
-    });
-
-    const teacherNameH = worksheet[`H${i}`].v.split('/');
-
-    teacherNameH.map(teacherName => {
-      if (teachers[teacherName] && teachers[teacherName].workingTime) {
-        teachers[teacherName].workingTime += 2;
-      } else {
-        teachers[teacherName] = {};
-        teachers[teacherName].workingTime = 2;
-      }
-
-      return true;
-    });
-  }
-
-  const data: Teacher[] = Object.keys(teachers).map(key => ({ name: key, workingTime: teachers[key].workingTime }));
-
-  return data;
+  });
 }

@@ -9,11 +9,16 @@ const SimpleBarChart = ({ data }) => (
     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
   >
     <XAxis dataKey="name" />
-    <YAxis dataKey="workingTime" />
+    <YAxis dataKey="workload" />
     <CartesianGrid strokeDasharray="3 3" />
     <Tooltip />
     <Legend />
-    <Bar dataKey="workingTime" fill="#82ca9d" />
+    <Bar dataKey="workload" fill="#82ca9d" />
+    <Bar dataKey="зачет" fill="#82ca9d" />
+    <Bar dataKey="практика" fill="#82ca9d" />
+    <Bar dataKey="экзамен" fill="#82ca9d" />
+    <Bar dataKey="лекция" fill="#82ca9d" />
+    <Bar dataKey="undefined" fill="#82ca9d" />
   </BarChart>
 );
 

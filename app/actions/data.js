@@ -1,6 +1,6 @@
 // @flow
 import openFileFromDialog from '../services/FileService';
-import getTeachersData, { getDataFromWorkSheet } from '../services/XLSXDataService';
+import { getDataFromWorkSheet, getTeachersWorkload } from '../services/XLSXDataService';
 import { type Teacher } from '../reducers/data';
 
 import XLSX from 'xlsx';
@@ -25,8 +25,9 @@ export function loadAllTeachers() {
     const workbook = XLSX.readFile(fileName[0]);
     const firstSheetName = workbook.SheetNames[0];
     const workSheet = workbook.Sheets[firstSheetName];
-    const teachers: Teacher[] = getTeachersData(workSheet);
     const data = getDataFromWorkSheet(workSheet);
+    const teachers = getTeachersWorkload(data);
+    debugger;
     dispatch(loadTeachers(teachers));
   };
 }
