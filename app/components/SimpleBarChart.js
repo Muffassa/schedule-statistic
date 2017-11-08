@@ -13,12 +13,7 @@ const SimpleBarChart = ({ data }) => (
     <CartesianGrid strokeDasharray="3 3" />
     <Tooltip />
     <Legend />
-    <Bar dataKey="workload" fill="#82ca9d" />
-    <Bar dataKey="зачет" fill="#82ca9d" />
-    <Bar dataKey="практика" fill="#82ca9d" />
-    <Bar dataKey="экзамен" fill="#82ca9d" />
-    <Bar dataKey="лекция" fill="#82ca9d" />
-    <Bar dataKey="undefined" fill="#82ca9d" />
+    <Bar dataKey="workload" name="Общая загруженность" fill="#82ca9d" />
   </BarChart>
 );
 

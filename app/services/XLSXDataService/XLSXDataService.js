@@ -1,5 +1,8 @@
 // @flow
 import { SSF } from 'xlsx';
+import moment from 'moment';
+
+import { filterObject } from '../utils';
 
 export function getDataFromWorkSheet(worksheet: any) {
   const workSheetData = {};
@@ -88,4 +91,23 @@ export function getTeachersWorkload(data: any) {
       name: teacherName,
     });
   });
+}
+
+export function getTeachersWorkloadForPeriod(data: any, from: any, to: any) {
+  const dateFrom = moment()
+    .date(from.split('.')[0])
+    .month(from.split('.')[1]);
+  const dateTo = moment()
+    .date(to.split('.')[0])
+    .month(to.split('.')[1]);
+
+  const selectedPeriod = filterObject(data, key => {
+    const currentData = moment()
+      .date(key.split('.')[0])
+      .month(key.split('.')[1]);
+    const isValiable = currentData.isSameOrBefore(dateTo) && currentData.isSameOrAfter(dateFrom);
+    return isValiable;
+  });
+
+  return Object.keys(selectedPeriod).length === 0 ? false : getTeachersWorkload(selectedPeriod);
 }
