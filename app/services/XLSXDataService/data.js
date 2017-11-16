@@ -4,6 +4,7 @@ const data = {
     {
       lessons: [
         {
+          id: 0,
           places: ['700', '105', '404'],
           subject: 'РемЭСО',
           teachers: ['Варлаков', 'Беликов', 'Чикирев'],
@@ -11,6 +12,7 @@ const data = {
           type: 'практика',
         },
         {
+          id: 1,
           places: ['700', '105', '404'],
           subject: 'РемЭСО',
           teachers: ['Варлаков', 'Беликов', 'Чикирев'],
@@ -18,6 +20,7 @@ const data = {
           type: 'практика',
         },
         {
+          id: 2,
           places: ['700', '105', '404'],
           subject: 'РемЭСО',
           teachers: ['Варлаков', 'Беликов', 'Чикирев'],
@@ -51,7 +54,7 @@ const data = {
           type: 'практика',
         },
       ],
-      troop: 431,
+      troop: 432,
     },
     {
       lessons: [
@@ -77,7 +80,7 @@ const data = {
           type: 'практика',
         },
       ],
-      troop: 431,
+      troop: 433,
     },
   ],
   '03.09': [
@@ -131,7 +134,7 @@ const data = {
           type: 'практика',
         },
       ],
-      troop: 431,
+      troop: 432,
     },
     {
       lessons: [
@@ -157,7 +160,7 @@ const data = {
           type: 'практика',
         },
       ],
-      troop: 431,
+      troop: 433,
     },
   ],
   10.09: [

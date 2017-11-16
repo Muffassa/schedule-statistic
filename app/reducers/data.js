@@ -1,25 +1,26 @@
 // @flow
 
-import { TEACHERS_LOAD_ALL } from '../actions/data';
+import { LOAD_DATA } from '../actions/data';
 
 export type Teacher = {
-  +name: string,
-  +workload: number
+  data: string
 };
 
 export interface IState {
   +teachers: Teacher[]
 }
 
-const initialState: IState = { teachers: [] };
+const initialState = {
+  teachers: {}
+};
 
 
-export default function data(state: IState = initialState, action: any) {
+export default function data(state: any = initialState, action: any) {
   switch (action.type) {
-    case TEACHERS_LOAD_ALL:
+    case LOAD_DATA:
       return {
         ...state,
-        teachers: action.payload
+        ...action.payload
       };
     default:
       return state;

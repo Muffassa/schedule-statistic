@@ -1,8 +1,9 @@
-// @flow
 import { SSF } from 'xlsx';
-import moment from 'moment';
+// import moment from 'moment';
+import { schema, normalize } from 'normalizr';
+import md5 from 'blueimp-md5';
 
-import { filterObject } from '../utils';
+// import { filterObject } from '../utils';
 
 export function getDataFromWorkSheet(worksheet: any) {
   const workSheetData = {};
@@ -19,22 +20,25 @@ export function getDataFromWorkSheet(worksheet: any) {
     const getScheduleByScheme = makeXLSXParser(worksheet);
 
     const { troopNumber, subjectName, themeNumber, place, teachers } = getScheduleByScheme(scheme);
-
-    const lessons = subjectName.map((subject, index) => ({
-      subject: subject
-        .toString()
-        .toString()
-        .split('/')[0],
-      type: subject.toString().split('/')[1],
-      thems: themeNumber[index].toString().split('/'),
-      places: place[index].toString().split('/'),
-      teachers: teachers[index].toString().split('/'),
-    }));
-
     dateCode = worksheet[`A${i}`] ? worksheet[`A${i}`].v : dateCode;
+
+    const lessons = subjectName.map((subject, index) => {
+      const subjectTitle = subject.toString().split('/')[0];
+      const subjectType = subject.toString().split('/')[1];
+      return {
+        id: md5(`${dateCode}${troopNumber[0]}${index}`),
+        subject: { id: md5(subjectTitle), title: subjectTitle },
+        type: { id: md5(subjectType), type: subjectType },
+        thems: arrayToObjects(themeNumber[index].toString().split('/')),
+        places: arrayToObjects(place[index].toString().split('/')),
+        teachers: arrayToObjects(teachers[index].toString().split('/')),
+      };
+    });
+
     const { d, m } = SSF.parse_date_code(dateCode, { date1904: false });
     const day: string = `${d}.${m}`;
     const troopDaySchedule = {
+      id: md5(`${dateCode}${troopNumber[0]}${i}`),
       troop: troopNumber[0],
       lessons,
     };
@@ -43,7 +47,8 @@ export function getDataFromWorkSheet(worksheet: any) {
       ? workSheetData[day].push(troopDaySchedule)
       : (workSheetData[day] = [{ ...troopDaySchedule }]);
   }
-  return workSheetData;
+
+  return normalizeData(workSheetData);
 }
 
 const makeXLSXParser = worksheet => scheme =>
@@ -55,59 +60,24 @@ const makeXLSXParser = worksheet => scheme =>
     return { ...result, [key]: worksheetData };
   }, {});
 
-export function getTeachersWorkload(data: any) {
-  const teachersWorkload = Object.keys(data)
-    .map(key => data[key])
-    .reduce((prev, dateLessons) => prev.concat(dateLessons), [])
-    .reduce((prev, lessonDays) => prev.concat(lessonDays.lessons), [])
-    .map(lesson => lesson.teachers.map(teacher => ({ name: teacher, type: lesson.type })))
-    .reduce((prev, dayTeachers) => prev.concat(dayTeachers), [])
-    .reduce((prev, teacher) => {
-      const { name, type } = teacher;
-      if (prev[name]) {
-        const { workload } = prev[name];
-        const teacherWorkload = { ...prev[name], workload: workload + 2 };
-
-        if (prev[name][type]) {
-          const prevWorkloadByLessonType = prev[name][type];
-          return { ...prev, [name]: { ...teacherWorkload, [type]: prevWorkloadByLessonType + 2 } };
-        }
-
-        return { ...prev, [name]: { ...teacherWorkload, [type]: 2 } };
-      }
-
-      return {
-        ...prev,
-        [name]: {
-          workload: 2,
-          [type]: 2,
-        },
-      };
-    }, {});
-
-  return Object.keys(teachersWorkload).map(teacherName => {
-    const teacherData = teachersWorkload[teacherName];
-    return Object.keys(teacherData).reduce((prev, key) => ({ ...prev, [key]: teacherData[key] }), {
-      name: teacherName,
-    });
-  });
+// Converts array of data into array of objects with id
+function arrayToObjects(data) {
+  const result = data.map(element => ({ id: md5(element), data: element }));
+  return result;
 }
 
-export function getTeachersWorkloadForPeriod(data: any, from: any, to: any) {
-  const dateFrom = moment()
-    .date(from.split('.')[0])
-    .month(from.split('.')[1]);
-  const dateTo = moment()
-    .date(to.split('.')[0])
-    .month(to.split('.')[1]);
-
-  const selectedPeriod = filterObject(data, key => {
-    const currentData = moment()
-      .date(key.split('.')[0])
-      .month(key.split('.')[1]);
-    const isValiable = currentData.isSameOrBefore(dateTo) && currentData.isSameOrAfter(dateFrom);
-    return isValiable;
-  });
-
-  return Object.keys(selectedPeriod).length === 0 ? false : getTeachersWorkload(selectedPeriod);
+function normalizeData(data) {
+  const formatedData = Object.keys(data).map((date, i) => ({ id: i, date, schedule: data[date] }));
+  const teacher = new schema.Entity('teachers');
+  const place = new schema.Entity('places');
+  const lesson = new schema.Entity('lessons', { teachers: [teacher], places: [place] });
+  const troopScedules = new schema.Entity('troopSchedules', { lessons: [lesson] });
+  const dateSchedule = new schema.Entity(
+    'dateSchedules',
+    { schedule: [troopScedules] },
+    { idAttribute: 'date' },
+  );
+  const mySchema = [dateSchedule];
+  const result = normalize(formatedData, mySchema);
+  return result.entities;
 }

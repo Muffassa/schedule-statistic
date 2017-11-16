@@ -8,9 +8,7 @@ function mapDispatchToProps(dispatch) {
 }
 
 function mapStateToProps(state) {
-  return {
-    teachers: state.data.teachers
-  };
+  return state.data;
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Home);

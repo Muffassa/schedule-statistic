@@ -186,11 +186,14 @@
     "webpack-merge": "^4.1.0"
   },
   "dependencies": {
+    "blueimp-md5": "^2.10.0",
     "devtron": "^1.4.0",
     "electron-debug": "^1.2.0",
     "font-awesome": "^4.7.0",
     "history": "^4.6.3",
+    "material-ui": "^0.19.4",
     "moment": "^2.19.1",
+    "normalizr": "^3.2.4",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-hot-loader": "3.0.0-beta.6",
