@@ -32,15 +32,18 @@ export default class SelectField extends Component {
 
   render() {
     const {value} = this.state;
-    const { hintText } = this.props;
+    const { hintText, disabled, className } = this.props;
     return (
-      <MUISelectField
-        hintText={hintText}
-        value={value}
-        onChange={this.handleChange}
-      >
-        {this.menuItems(value)}
-      </MUISelectField>
+      <div className={className}>
+        <MUISelectField
+          hintText={hintText}
+          value={value}
+          onChange={this.handleChange}
+          disabled={disabled}
+        >
+          {this.menuItems(value)}
+        </MUISelectField>
+      </div>
     );
   }
 }

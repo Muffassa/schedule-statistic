@@ -1,9 +1,10 @@
 .container {
   position: absolute;
-  top: 30%;
+  top: 0%;
   left: 10px;
   text-align: center;
   width: 100%;
+  height: 100%;
 }
 
 .container h2 {
@@ -16,4 +17,31 @@
 
 .workload {
   color: #000;
+  margin: 0 auto;
+  margin-top: 9%;
+}
+
+.selectorWrapper {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.selector {
+  margin-left: 20px;
+  margin-bottom: 20px;
+}
+
+.datePickWrapper {
+  width: 100%;
+}
+
+.workloadButton {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.fileLoadButton {
+  position: absolute;
+  bottom: 50px;
+  right: 50px;
 }

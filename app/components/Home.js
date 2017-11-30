@@ -4,6 +4,7 @@ import RaisedButton from 'material-ui/RaisedButton';
 import DatePicker from 'material-ui/DatePicker';
 import { SelectField } from './';
 import styles from './Home.css';
+import { dialog } from 'electron';
 
 export default class Home extends Component {
   constructor() {
@@ -98,7 +99,7 @@ export default class Home extends Component {
         return [...troopScedules, ...schedule];
       }, []);
 
-  render() {
+  dataSelectors = isLoadedFile => {
     const DateTimeFormat = global.Intl.DateTimeFormat;
     const { teachers, places, subjects, lessonTypes, troops } = this.props;
     const placesArray = Object.keys(places).map(key => places[key]);
@@ -114,11 +115,13 @@ export default class Home extends Component {
       }))
       .filter(lessonType => lessonType.data);
     const troopsArray = Object.keys(troops).map(key => troops[key]);
-    const { loadAllData } = this.props;
-    return (
-      <div>
-        <div className={styles.container} data-tid="container">
-          <div>
+    const { dateFrom, dateTo } = this.state;
+    const disabled = !dateFrom && !dateTo;
+
+    if (isLoadedFile) {
+      return (
+        <div className={styles.selectorWrapper}>
+          <div className={styles.datePickWrapper}>
             <DatePicker
               disableYearSelection
               autoOk
@@ -140,30 +143,53 @@ export default class Home extends Component {
             data={teachersArray}
             onSelect={this.setCurrentTeacher}
             hintText="Выберите преподавателя"
+            disabled={disabled}
+            className={styles.selector}
           />
           <SelectField
             data={placesArray}
             onSelect={this.setCurrentPlace}
             hintText="Выберите аудиторию"
+            disabled={disabled}
+            className={styles.selector}
           />
           <SelectField
             data={subjectsArray}
             onSelect={this.setCurrentSubject}
             hintText="Выберите предмет"
+            className={styles.selector}
+            disabled={disabled}
           />
           <SelectField
             data={lessonTypesArray}
             onSelect={this.setCurrentLessonType}
             hintText="Выберите тип занятия"
+            className={styles.selector}
+            disabled={disabled}
           />
           <SelectField
             data={troopsArray}
             onSelect={this.setCurrentTroop}
             hintText="Выберите взвод"
+            className={styles.selector}
+            disabled={disabled}
           />
-          <RaisedButton label="Посчитать загруженность" primary onClick={this.calculateWorkload} />
-          <div className={styles.workload}>Загруженность часов{this.state.workLoad}</div>
-          <RaisedButton label="Загрузить документ" primary onClick={loadAllData} />
+          <RaisedButton label="Посчитать загруженность" primary onClick={this.calculateWorkload} className={styles.workloadButton}/>
+          <div className={styles.workload}>Загруженность {this.state.workLoad} часов</div>
+        </div>
+      );
+    }
+    return '';
+  };
+  render() {
+    const { teachers, loadAllData } = this.props;
+    const teachersArray = Object.keys(teachers).map(key => teachers[key]);
+    const isLoadedFile = Boolean(teachersArray.length);
+    return (
+      <div>
+        <div className={styles.container} data-tid="container">
+          {this.dataSelectors(isLoadedFile)}
+          <RaisedButton label="Загрузить документ" primary onClick={loadAllData} className={styles.fileLoadButton} />
         </div>
       </div>
     );
