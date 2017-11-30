@@ -11,24 +11,23 @@ export function getDataFromWorkSheet(worksheet: any) {
   for (let i = 2; i <= 101; i += 2) {
     const scheme = {
       troopNumber: [`B${i}`],
-      subjectName: [`C${i}`, `E${i}`, `G${i}`],
-      themeNumber: [`C${i + 1}`, `E${i + 1}`, `G${i + 1}`],
-      place: [`D${i}`, `F${i}`, `H${i}`],
-      teachers: [`D${i + 1}`, `F${i + 1}`, `H${i + 1}`],
+      subjectName: [`C${i}`, `F${i}`, `I${i}`],
+      subjectType: [`D${i + 1}`, `G${i + 1}`, `J${i + 1}`],
+      themeNumber: [`C${i + 1}`, `F${i + 1}`, `I${i + 1}`],
+      place: [`E${i}`, `H${i}`, `K${i}`],
+      teachers: [`E${i + 1}`, `H${i + 1}`, `K${i + 1}`],
     };
 
     const getScheduleByScheme = makeXLSXParser(worksheet);
 
-    const { troopNumber, subjectName, themeNumber, place, teachers } = getScheduleByScheme(scheme);
+    const { troopNumber, subjectName, themeNumber, place, teachers, subjectType } = getScheduleByScheme(scheme);
     dateCode = worksheet[`A${i}`] ? worksheet[`A${i}`].v : dateCode;
-
     const lessons = subjectName.map((subject, index) => {
       const subjectTitle = subject.toString().split('/')[0];
-      const subjectType = subject.toString().split('/')[1];
       return {
         id: md5(`${dateCode}${troopNumber[0]}${index}`),
         subject: { id: md5(subjectTitle), title: subjectTitle },
-        type: { id: md5(subjectType), type: subjectType },
+        type: { id: md5(subjectType), type: subjectType[index] },
         thems: arrayToObjects(themeNumber[index].toString().split('/')),
         places: arrayToObjects(place[index].toString().split('/')),
         teachers: arrayToObjects(teachers[index].toString().split('/')),
