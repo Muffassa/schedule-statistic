@@ -11,7 +11,11 @@ export interface IState {
 }
 
 const initialState = {
-  teachers: {}
+  teachers: {},
+  places: {},
+  subjects: {},
+  lessonTypes: {},
+  troops: {}
 };
 
 

@@ -20,7 +20,7 @@ export default class SelectField extends Component {
       <MenuItem
         key={element.id}
         insetChildren={true}
-        checked={values && values.indexOf(element.data) > -1}
+        checked={values && (""+values).indexOf(element.data) > -1}
         value={element.data}
         primaryText={element.data}
       />
@@ -29,9 +29,10 @@ export default class SelectField extends Component {
 
   render() {
     const {value} = this.state;
+    const { hintText } = this.props;
     return (
       <MUISelectField
-        hintText="Выберите преподавателя"
+        hintText={hintText}
         value={value}
         onChange={this.handleChange}
       >

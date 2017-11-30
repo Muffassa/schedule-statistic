@@ -39,7 +39,7 @@ export function getDataFromWorkSheet(worksheet: any) {
     const day: string = `${d}.${m}`;
     const troopDaySchedule = {
       id: md5(`${dateCode}${troopNumber[0]}${i}`),
-      troop: troopNumber[0],
+      troop: { data: troopNumber[0], id: md5(troopNumber[0]) },
       lessons,
     };
 
@@ -70,8 +70,11 @@ function normalizeData(data) {
   const formatedData = Object.keys(data).map((date, i) => ({ id: i, date, schedule: data[date] }));
   const teacher = new schema.Entity('teachers');
   const place = new schema.Entity('places');
-  const lesson = new schema.Entity('lessons', { teachers: [teacher], places: [place] });
-  const troopScedules = new schema.Entity('troopSchedules', { lessons: [lesson] });
+  const subject = new schema.Entity('subjects');
+  const type = new schema.Entity('lessonTypes');
+  const troop = new schema.Entity('troops');
+  const lesson = new schema.Entity('lessons', { teachers: [teacher], places: [place], subject, type });
+  const troopScedules = new schema.Entity('troopSchedules', { lessons: [lesson], troop });
   const dateSchedule = new schema.Entity(
     'dateSchedules',
     { schedule: [troopScedules] },
