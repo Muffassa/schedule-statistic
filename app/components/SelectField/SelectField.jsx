@@ -9,13 +9,16 @@ export default class SelectField extends Component {
   };
 
   handleChange = (event: any, index: any, value: any) => {
-    const { data } = this.props;
+    // TODO: пределать дублирование с 21 строкой
+    let { data } = this.props;
+    data = [ {data: null, id: null }, ...data];
     this.setState({value});
     this.props.onSelect({ id: data[index].id, data: value });
   };
 
   menuItems(values: any) {
-    const { data } = this.props;
+    let { data } = this.props;
+    data = [ {data: null, id: null }, ...data];
     return data.map((element) => (
       <MenuItem
         key={element.id}

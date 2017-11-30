@@ -250,7 +250,7 @@ export default class Home extends Component {
             hintText="Выберите взвод"
           />
           <RaisedButton label="Посчитать загруженность" primary onClick={this.calculateWorkload} />
-          <div className={styles.workload}>Загруженность {this.state.workLoad}</div>
+          <div className={styles.workload}>Загруженность часов{this.state.workLoad}</div>
           <RaisedButton label="Загрузить документ" primary onClick={loadAllData} />
         </div>
       </div>
