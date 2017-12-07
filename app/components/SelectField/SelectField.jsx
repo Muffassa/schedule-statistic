@@ -13,7 +13,19 @@ export default class SelectField extends Component {
     let { data } = this.props;
     data = [ {data: null, id: null }, ...data];
     this.setState({value});
-    this.props.onSelect({ id: data[index].id, data: value });
+    // У нас может быть либо масив здесь если выбрали несколько элементов
+    // Тогда отдаем этот масив
+    // Если у нас один элемент выбрали то засовываем его в масив
+    // Чтоб на выходе был один форма
+    // Масив с объектам формата [{id: ..., data: ...}]
+    const selectedData = Array.isArray(value)
+      ? value
+      : [value];
+    const formatedData = selectedData.map((v, i) => {
+      const selected = data.find((element) => element.data === v );
+      return ({ id: selected.id , data: selected.data });
+    });
+    this.props.onSelect(formatedData);
   };
 
   menuItems(values: any) {
@@ -32,10 +44,11 @@ export default class SelectField extends Component {
 
   render() {
     const {value} = this.state;
-    const { hintText, disabled, className } = this.props;
+    const { hintText, disabled, className, multiple } = this.props;
     return (
       <div className={className}>
         <MUISelectField
+          multiple={multiple}
           hintText={hintText}
           value={value}
           onChange={this.handleChange}

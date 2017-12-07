@@ -44,8 +44,10 @@ export default class Home extends Component {
     let dayTroopSchedules = selectedDatesSchedule.map(
       troopDayScheduleId => troopSchedules[troopDayScheduleId],
     );
-    if (troop.id) {
-      dayTroopSchedules = dayTroopSchedules.filter(lesson => lesson.troop === troop.id);
+    if (troop.length) {
+      dayTroopSchedules = dayTroopSchedules.filter(lesson =>
+        troop.find(t => t.id === lesson.troop),
+      );
     }
 
     const dayTroopLessonsId = dayTroopSchedules.reduce(
@@ -55,25 +57,36 @@ export default class Home extends Component {
 
     let selectedLessons = dayTroopLessonsId.map(id => lessons[id]);
 
-    if (teacher.id) {
-      selectedLessons = selectedLessons.filter(lesson => lesson.teachers.includes(teacher.id));
+    if (teacher.length) {
+      // У преподов нам нужно включать все массивы, которые подходят для каждого препода
+      selectedLessons = teacher.reduce(
+        (lessonsArray, t) => [
+          ...selectedLessons.filter(lesson => lesson.teachers.includes(t.id)),
+          ...lessonsArray,
+        ],
+        [],
+      );
     }
 
-    if (place.id) {
-      selectedLessons = selectedLessons.filter(lesson => lesson.places.includes(place.id));
+    if (place.length) {
+      const selectedPlace = place[0];
+      selectedLessons = selectedLessons.filter(lesson => lesson.places.includes(selectedPlace.id));
     }
 
-    if (subject.id) {
-      selectedLessons = selectedLessons.filter(lesson => lesson.subject === subject.id);
+    if (subject.length) {
+      const selectedSubject = subject[0];
+      selectedLessons = selectedLessons.filter(lesson => lesson.subject === selectedSubject.id);
+    }
+    if (lessonType.length) {
+      selectedLessons = selectedLessons.filter(lesson =>
+        lessonType.find(l => l.id === lesson.type),
+      );
     }
 
-    if (lessonType.id) {
-      selectedLessons = selectedLessons.filter(lesson => lesson.type === lessonType.id);
-    }
-
-    const workLoad = selectedLessons.reduce((fullWorkload, lesson) => {
-      return fullWorkload + lesson.duration;
-    }, 0);
+    const workLoad = selectedLessons.reduce(
+      (fullWorkload, lesson) => fullWorkload + lesson.duration,
+      0,
+    );
 
     this.setState({ workLoad });
   };
@@ -131,6 +144,7 @@ export default class Home extends Component {
               locale="ru-RU"
               DateTimeFormat={DateTimeFormat}
               onChange={this.setDateFrom}
+              hintText="Выберите с какого числа"
             />
             <DatePicker
               disableYearSelection
@@ -139,6 +153,7 @@ export default class Home extends Component {
               locale="ru-RU"
               DateTimeFormat={DateTimeFormat}
               onChange={this.setDateTo}
+              hintText="Выберите по какое число"
             />
           </div>
           <SelectField
@@ -147,6 +162,7 @@ export default class Home extends Component {
             hintText="Выберите преподавателя"
             disabled={disabled}
             className={styles.selector}
+            multiple
           />
           <SelectField
             data={placesArray}
@@ -168,6 +184,7 @@ export default class Home extends Component {
             hintText="Выберите тип занятия"
             className={styles.selector}
             disabled={disabled}
+            multiple
           />
           <SelectField
             data={troopsArray}
@@ -175,8 +192,14 @@ export default class Home extends Component {
             hintText="Выберите взвод"
             className={styles.selector}
             disabled={disabled}
+            multiple
           />
-          <RaisedButton label="Посчитать загруженность" primary onClick={this.calculateWorkload} className={styles.workloadButton}/>
+          <RaisedButton
+            label="Посчитать загруженность"
+            primary
+            onClick={this.calculateWorkload}
+            className={styles.workloadButton}
+          />
           <div className={styles.workload}>Загруженность {this.state.workLoad} часов</div>
         </div>
       );
@@ -191,7 +214,12 @@ export default class Home extends Component {
       <div>
         <div className={styles.container} data-tid="container">
           {this.dataSelectors(isLoadedFile)}
-          <RaisedButton label="Загрузить документ" primary onClick={loadAllData} className={styles.fileLoadButton} />
+          <RaisedButton
+            label="Загрузить документ"
+            primary
+            onClick={loadAllData}
+            className={styles.fileLoadButton}
+          />
         </div>
       </div>
     );
