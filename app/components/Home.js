@@ -71,7 +71,9 @@ export default class Home extends Component {
       selectedLessons = selectedLessons.filter(lesson => lesson.type === lessonType.id);
     }
 
-    const workLoad = selectedLessons.length * 2;
+    const workLoad = selectedLessons.reduce((fullWorkload, lesson) => {
+      return fullWorkload + lesson.duration;
+    }, 0);
 
     this.setState({ workLoad });
   };

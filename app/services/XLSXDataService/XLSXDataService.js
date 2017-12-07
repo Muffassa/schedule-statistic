@@ -8,29 +8,49 @@ import md5 from 'blueimp-md5';
 export function getDataFromWorkSheet(worksheet: any) {
   const workSheetData = {};
   let dateCode;
-  for (let i = 2; i <= 101; i += 2) {
+  // TODO: тут хак с получением последнего элемента через ref
+  // Нужно какой то более надежный способ, т.к. если у нас добавится новый столбец
+  // То вместо Q будет другое значение
+  const numbeOfElements = parseInt(worksheet['!ref'].split(':')[1].split('Q')[1], 10);
+  for (let i = 2; i <= numbeOfElements; i += 2) {
     const scheme = {
       troopNumber: [`B${i}`],
-      subjectName: [`C${i}`, `F${i}`, `I${i}`],
-      subjectType: [`D${i + 1}`, `G${i + 1}`, `J${i + 1}`],
-      themeNumber: [`C${i + 1}`, `F${i + 1}`, `I${i + 1}`],
-      place: [`E${i}`, `H${i}`, `K${i}`],
-      teachers: [`E${i + 1}`, `H${i + 1}`, `K${i + 1}`],
+      subjectName: [`C${i}`, `F${i}`, `I${i}`, `L${i}`, `O${i}`],
+      subjectType: [`D${i + 1}`, `G${i + 1}`, `J${i + 1}`, `M${i + 1}`, `P${i + 1}`],
+      themeNumber: [`C${i + 1}`, `F${i + 1}`, `I${i + 1}`, `L${i + 1}`, `O${i + 1}`],
+      place: [`E${i}`, `H${i}`, `K${i}`, `N${i}`, `Q${i}`],
+      teachers: [`E${i + 1}`, `H${i + 1}`, `K${i + 1}`, `N${i + 1}`, `Q${i + 1}`],
     };
 
     const getScheduleByScheme = makeXLSXParser(worksheet);
 
     const { troopNumber, subjectName, themeNumber, place, teachers, subjectType } = getScheduleByScheme(scheme);
+
+    if (
+        troopNumber[0] === ''
+      && subjectName[0] === ''
+      && themeNumber[0] === ''
+      && place[0] === ''
+      && teachers[0] === ''
+      && subjectType[0] === ''
+    ) {
+      continue;
+    }
+
     dateCode = worksheet[`A${i}`] ? worksheet[`A${i}`].v : dateCode;
     const lessons = subjectName.map((subject, index) => {
       const subjectTitle = subject.toString().split('/')[0];
+      const duration = index > 2
+        ? 1
+        : 2; // 4 и 5 занятия длятся по часу, 1/2/3 2 часа
       return {
         id: md5(`${dateCode}${troopNumber[0]}${index}`),
         subject: { id: md5(subjectTitle), title: subjectTitle },
-        type: { id: md5(subjectType), type: subjectType[index] },
+        type: { id: md5(subjectType[index]), type: subjectType[index] },
         thems: arrayToObjects(themeNumber[index].toString().split('/')),
         places: arrayToObjects(place[index].toString().split('/')),
         teachers: arrayToObjects(teachers[index].toString().split('/')),
+        duration
       };
     });
 
