@@ -35,6 +35,19 @@ export default class Home extends Component {
     this.setState({ dateTo: date });
   };
 
+  clear = () => {
+    this.setState({
+      dateFrom: null,
+      dateTo: null,
+      teacher: {},
+      place: {},
+      subject: {},
+      lessonType: {},
+      troop: {},
+      workLoad: 0,
+    })
+  }
+
   calculateWorkload = () => {
     const { dateFrom, dateTo, troop, teacher, place, subject, lessonType } = this.state;
 
@@ -94,12 +107,10 @@ export default class Home extends Component {
   getTroopsSchedulesByDates = (dateFrom, dateTo, fullSchedule) =>
     Object.keys(fullSchedule)
       .filter(date => {
-        const [day, month] = date.split('.');
+        const [day, month, year] = date.split('/');
         const momentDateFrom = moment(dateFrom);
         const momentDateTo = moment(dateTo);
-        const momentDate = moment()
-          .date(day)
-          .month(month - 1)
+        const momentDate = moment(date, ["MM/DD/YY"])
           .hour(0)
           .minute(0)
           .second(0)

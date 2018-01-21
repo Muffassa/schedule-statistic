@@ -8,10 +8,8 @@ import md5 from 'blueimp-md5';
 export function getDataFromWorkSheet(worksheet: any) {
   const workSheetData = {};
   let dateCode;
-  // TODO: тут хак с получением последнего элемента через ref
-  // Нужно какой то более надежный способ, т.к. если у нас добавится новый столбец
-  // То вместо Q будет другое значение
-  const numbeOfElements = parseInt(worksheet['!ref'].split(':')[1].split('Q')[1], 10);
+  // Получаем из данных формата "Q23:A22" номер последней строки
+  const numbeOfElements = parseInt(worksheet['!ref'].split(':')[1].replace(/^\D+/g, ''), 10);
   for (let i = 2; i <= numbeOfElements; i += 2) {
     const scheme = {
       troopNumber: [`B${i}`],
@@ -24,10 +22,18 @@ export function getDataFromWorkSheet(worksheet: any) {
 
     const getScheduleByScheme = makeXLSXParser(worksheet);
 
-    const { troopNumber, subjectName, themeNumber, place, teachers, subjectType } = getScheduleByScheme(scheme);
+    const {
+      troopNumber,
+      subjectName,
+      themeNumber,
+      place,
+      teachers,
+      subjectType
+    } = getScheduleByScheme(scheme);
 
+    //  Если все поля пустые то пропустить цикл
     if (
-        troopNumber[0] === ''
+      troopNumber[0] === ''
       && subjectName[0] === ''
       && themeNumber[0] === ''
       && place[0] === ''
@@ -37,7 +43,7 @@ export function getDataFromWorkSheet(worksheet: any) {
       continue;
     }
 
-    dateCode = worksheet[`A${i}`] ? worksheet[`A${i}`].v : dateCode;
+    dateCode = worksheet[`A${i}`] ? worksheet[`A${i}`].w : dateCode;
     const lessons = subjectName.map((subject, index) => {
       const subjectTitle = subject.toString().split('/')[0];
       const duration = index > 2
@@ -54,17 +60,15 @@ export function getDataFromWorkSheet(worksheet: any) {
       };
     });
 
-    const { d, m } = SSF.parse_date_code(dateCode, { date1904: false });
-    const day: string = `${d}.${m}`;
     const troopDaySchedule = {
       id: md5(`${dateCode}${troopNumber[0]}${i}`),
       troop: { data: troopNumber[0], id: md5(troopNumber[0]) },
       lessons,
     };
 
-    workSheetData[day]
-      ? workSheetData[day].push(troopDaySchedule)
-      : (workSheetData[day] = [{ ...troopDaySchedule }]);
+    workSheetData[dateCode]
+      ? workSheetData[dateCode].push(troopDaySchedule)
+      : (workSheetData[dateCode] = [{ ...troopDaySchedule }]);
   }
 
   return normalizeData(workSheetData);
